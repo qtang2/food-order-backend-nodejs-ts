@@ -1,11 +1,13 @@
+import express from "express";
+import bodyParser from "body-parser";
+import { AdminRoute, VendorRoute } from "./routes";
 
-import express from 'express'
+const app = express();
 
-const app = express()
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/', (req, res) => {
-    return res.json('Hello to the app')
-})
+app.use("/admin", AdminRoute);
+app.use("/vendor", VendorRoute);
 
-app.listen(8080, ()=> {
-})
+app.listen(8080, () => {});
