@@ -1,18 +1,62 @@
-// handle admin route stuff
-import { Request,Response, NextFunction } from "express";
+// handle admin route stuff, business logic
+import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
+import { Vendor } from "../models";
+import { generatePassword, generateSalt } from "../utility";
 
-export const CreateVendor = async (req: Request, res: Response, next: NextFunction) => {
+export const CreateVendor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const {
+    name,
+    address,
+    pincode,
+    foodType,
+    email,
+    password,
+    ownerName,
+    phone,
+  } = <CreateVendorInput>req.body;
 
-    const { name, address, pincode, foodType, email, password, ownerName, phone }  = <CreateVendorInput>req.body
+  const existingVendor = await Vendor.findOne({email})
 
-    return res.json({name, address, pincode, foodType, email, password, ownerName, phone})
 
+  if(existingVendor != null) {
+    return res.json({message: `Vendor with email:${email} exist`})
+  }
+
+  const salt = await generateSalt()
+
+  const userPassword = await generatePassword(password, salt)
+
+
+  const createVendor = await Vendor.create({
+    name: name,
+    address: address,
+    pincode: pincode,
+    foodType: foodType,
+    email: email,
+    password: userPassword,
+    salt: salt,
+    ownerName: ownerName,
+    phone: phone,
+    rating: 0,
+    serviceAvailable: false,
+    coverImages: [],
     
-}
-export const GetVendors = async (req: Request, res: Response, next: NextFunction) => {
-    
-}
-export const GetVendorByID = async (req: Request, res: Response, next: NextFunction) => {
-    
-}
+  });
+
+  return res.json(createVendor);
+};
+export const GetVendors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+export const GetVendorByID = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
