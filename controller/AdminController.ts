@@ -4,7 +4,7 @@ import { CreateVendorInput } from "../dto";
 import { Vendor } from "../models";
 import { generatePassword, generateSalt } from "../utility";
 
-const findVendor = async (id: string | undefined, email?: string) => {
+export const FindVendor = async (id: string | undefined, email?: string) => {
   if (email) {
     return await Vendor.findOne({ email });
   } else {
@@ -28,7 +28,7 @@ export const CreateVendor = async (
     phone,
   } = <CreateVendorInput>req.body;
 
-  const existingVendor = await findVendor(undefined, email)
+  const existingVendor = await FindVendor(undefined, email)
 
   if (existingVendor != null) {
     return res.json({ message: `Vendor with email:${email} exist` });
@@ -75,7 +75,7 @@ export const GetVendorByID = async (
 ) => {
   const vendorId = req.params.id;
 
-  const vendor = await findVendor(vendorId)
+  const vendor = await FindVendor(vendorId)
   if (vendor !== null) {
     return res.json(vendor);
   }
