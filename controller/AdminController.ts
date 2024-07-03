@@ -4,6 +4,14 @@ import { CreateVendorInput } from "../dto";
 import { Vendor } from "../models";
 import { generatePassword, generateSalt } from "../utility";
 
+const findVendor = async (id: string | undefined, email?: string) => {
+  if (email) {
+    return await Vendor.findOne({ email });
+  } else {
+    return await Vendor.findById(id);
+  }
+};
+
 export const CreateVendor = async (
   req: Request,
   res: Response,
@@ -20,17 +28,15 @@ export const CreateVendor = async (
     phone,
   } = <CreateVendorInput>req.body;
 
-  const existingVendor = await Vendor.findOne({email})
+  const existingVendor = await findVendor(undefined, email)
 
-
-  if(existingVendor != null) {
-    return res.json({message: `Vendor with email:${email} exist`})
+  if (existingVendor != null) {
+    return res.json({ message: `Vendor with email:${email} exist` });
   }
 
-  const salt = await generateSalt()
+  const salt = await generateSalt();
 
-  const userPassword = await generatePassword(password, salt)
-
+  const userPassword = await generatePassword(password, salt);
 
   const createVendor = await Vendor.create({
     name: name,
@@ -45,7 +51,6 @@ export const CreateVendor = async (
     rating: 0,
     serviceAvailable: false,
     coverImages: [],
-    
   });
 
   return res.json(createVendor);
@@ -54,9 +59,26 @@ export const GetVendors = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const vendors = await Vendor.find();
+
+  if (vendors !== null) {
+    return res.json(vendors);
+  }
+
+  return res.json({ message: "Vendors data not available" });
+};
 export const GetVendorByID = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const vendorId = req.params.id;
+
+  const vendor = await findVendor(vendorId)
+  if (vendor !== null) {
+    return res.json(vendor);
+  }
+
+  return res.json({ message: "Vendor data not available" });
+};
