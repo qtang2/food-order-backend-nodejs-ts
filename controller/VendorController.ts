@@ -73,6 +73,27 @@ export const UpdateVendorProfile = async (
   }
   return res.json({ message: "Vendor data not found" });
 };
+export const UpdateVendorCoverImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  if (user) {
+    const existingVendor = await FindVendor(user._id);
+    if (existingVendor != null) {
+      const files = req.files as [Express.Multer.File];
+
+      const images = files.map((file: Express.Multer.File) => file.filename);
+
+      existingVendor.coverImages.push(...images);
+      const result = await existingVendor.save();
+
+      return res.json(result);
+    }
+  }
+  return res.json({ message: "Vendor data not found" });
+};
 export const UpdateVendorService = async (
   req: Request,
   res: Response,
@@ -106,21 +127,20 @@ export const AddFood = async (
 
     const existingVendor = await FindVendor(user._id);
     if (existingVendor != null) {
+      const files = req.files as [Express.Multer.File];
 
-      const files = req.files as [Express.Multer.File]
-
-      const images = files.map((file: Express.Multer.File) => file.filename)
+      const images = files.map((file: Express.Multer.File) => file.filename);
 
       const savedFood = await Food.create({
         vendorId: existingVendor._id,
         name,
-        description, 
+        description,
         category,
         foodType,
         readyTime,
         price,
         images,
-        rating: 0 
+        rating: 0,
       });
       existingVendor.foods.push(savedFood);
       const result = await existingVendor.save();
@@ -138,13 +158,12 @@ export const GetFoods = async (
   // req.user exist means the api pass the authentication process
   const user = req.user;
   if (user) {
-
-    console.log('=================GetFoods===================');
+    console.log("=================GetFoods===================");
     console.log(user);
-    console.log('====================================');
+    console.log("====================================");
 
-    const foods = await Food.find({vendorId: user._id})
-    if(foods != null) {
+    const foods = await Food.find({ vendorId: user._id });
+    if (foods != null) {
       return res.json(foods);
     }
   }
