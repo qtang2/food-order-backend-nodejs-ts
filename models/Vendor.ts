@@ -18,40 +18,43 @@ interface VendorDoc extends Document {
   lng: number;
 }
 
-const VendorSchema = new Schema({
-  name: { type: String, required: true },
-  ownerName: { type: String, required: true },
-  foodType: { type: [String] },
-  pincode: { type: String, required: true },
-  address: { type: String },
-  phone: { type: String, required: true },
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  salt: { type: String, required: true },
-  serviceAvailable: { type: Boolean },
-  coverImages: { type: [String] },
-  rating: { type: Number },
-//   foods: [
-//     {
-//       type: mongoose.SchemaTypes.ObjectId,
-//       ref: "food",
-//     },
-//   ],
-//   lat: { type: Number },
-//   lng: { type: Number },
-}, {
+const VendorSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    ownerName: { type: String, required: true },
+    foodType: { type: [String] },
+    pincode: { type: String, required: true },
+    address: { type: String },
+    phone: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+    salt: { type: String, required: true },
+    serviceAvailable: { type: Boolean },
+    coverImages: { type: [String] },
+    rating: { type: Number },
+    foods: [
+      {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "food",
+      },
+    ],
+    //   lat: { type: Number },
+    //   lng: { type: Number },
+  },
+  {
     toJSON: {
-        transform(doc, ret) {
-            delete ret.salt
-            delete ret.password
-            delete ret.createdAt
-            delete ret.__v
-            delete ret.updatedAt
-        }
-    } ,
-    timestamps: true
-});
+      transform(doc, ret) {
+        delete ret.salt;
+        delete ret.password;
+        delete ret.createdAt;
+        delete ret.__v;
+        delete ret.updatedAt;
+      },
+    },
+    timestamps: true,
+  }
+);
 
-const Vendor = mongoose.model<VendorDoc>('vendor', VendorSchema)
+const Vendor = mongoose.model<VendorDoc>("vendor", VendorSchema);
 
-export {Vendor}
+export { Vendor };

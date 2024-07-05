@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
 import { Vendor } from "../models";
-import { generatePassword, generateSalt } from "../utility";
+import { GeneratePassword, GenerateSalt } from "../utility";
 
 export const FindVendor = async (id: string | undefined, email?: string) => {
   if (email) {
@@ -34,9 +34,9 @@ export const CreateVendor = async (
     return res.json({ message: `Vendor with email:${email} exist` });
   }
 
-  const salt = await generateSalt();
+  const salt = await GenerateSalt();
 
-  const userPassword = await generatePassword(password, salt);
+  const userPassword = await GeneratePassword(password, salt);
 
   const createVendor = await Vendor.create({
     name: name,
