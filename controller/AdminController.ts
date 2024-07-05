@@ -53,7 +53,7 @@ export const CreateVendor = async (
     coverImages: [],
   });
 
-  return res.json(createVendor);
+  return res.json(createVendor);``
 };
 export const GetVendors = async (
   req: Request,

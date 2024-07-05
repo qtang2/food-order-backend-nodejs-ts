@@ -5,6 +5,7 @@ import { GenerateSignature, ValidatePassword } from "../utility";
 import { FindVendor } from "./AdminController";
 import { CreateFoodInput } from "../dto/Food.dto";
 import { Food } from "../models/Food";
+import { Vendor } from "../models";
 
 export const VendorLogin = async (
   req: Request,
@@ -105,15 +106,20 @@ export const AddFood = async (
 
     const existingVendor = await FindVendor(user._id);
     if (existingVendor != null) {
+
+      const files = req.files as [Express.Multer.File]
+
+      const images = files.map((file: Express.Multer.File) => file.filename)
+
       const savedFood = await Food.create({
         vendorId: existingVendor._id,
         name,
-        description,
+        description, 
         category,
         foodType,
         readyTime,
         price,
-        images: ['image.jpg'],
+        images,
         rating: 0 
       });
       existingVendor.foods.push(savedFood);
@@ -132,9 +138,15 @@ export const GetFoods = async (
   // req.user exist means the api pass the authentication process
   const user = req.user;
   if (user) {
-    const existingUser = await FindVendor(user._id);
 
-    return res.json(existingUser);
+    console.log('=================GetFoods===================');
+    console.log(user);
+    console.log('====================================');
+
+    const foods = await Food.find({vendorId: user._id})
+    if(foods != null) {
+      return res.json(foods);
+    }
   }
-  return res.json({ message: "Vendor data not found" });
+  return res.json({ message: "Vendor food not found" });
 };
