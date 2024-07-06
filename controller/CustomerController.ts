@@ -1,25 +1,20 @@
 // handle admin route stuff, business logic
 import { Request, Response, NextFunction } from "express";
-import { FoodDoc } from "../models/Food";
+import { EditVendorInput, VendorLoginInput } from "../dto";
+import { GenerateSignature, ValidatePassword } from "../utility";
+import { FindVendor } from "./AdminController";
+import { CreateFoodInput } from "../dto/Food.dto";
+import { Food, FoodDoc } from "../models/Food";
 import { Vendor } from "../models";
 
-export const GetFoodAvailability = async (
+export const CustomerSignUp = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const pincode = req.params.pincode;
-
-  const result = await Vendor.find({ pincode, serviceAvailable: false })
-    .sort([["rating", "descending"]])
-    .populate("foods");
-
-  if (result.length > 0) {
-    return res.status(200).json(result);
-  }
-  return res.status(400).json({ message: "Data not found" });
+  
 };
-export const GetTopRestaurant = async (
+export const CustomerLogin = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -35,7 +30,7 @@ export const GetTopRestaurant = async (
   }
   return res.status(400).json({ message: "Data not found" });
 };
-export const GetFoodsIn30Min = async (
+export const CustomerVerify = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -57,7 +52,7 @@ export const GetFoodsIn30Min = async (
   }
   return res.status(400).json({ message: "Data not found" });
 };
-export const SearchFoods = async (
+export const RequestOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -78,7 +73,19 @@ export const SearchFoods = async (
   }
   return res.status(400).json({ message: "Data not found" });
 };
-export const GetRestaurantById = async (
+export const GetCustomerProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id = req.params.id;
+  const result = await Vendor.findById(id);
+  if (result) {
+    return res.status(200).json(result);
+  }
+  return res.json({ message: "Vendor data not found" });
+};
+export const EditCustomerProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
