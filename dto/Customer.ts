@@ -9,3 +9,9 @@ export class CreateCustomerInput {
     @Length(6,12)
     phone: string;
 }
+
+export interface CustomerPayload {
+    _id: string;
+    email: string;
+    verified: boolean;
+  }

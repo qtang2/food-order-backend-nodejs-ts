@@ -23,6 +23,8 @@ router.post("/signup", CustomerSignUp);
 |--------------------------------------------------
 */
 router.post("/login", CustomerLogin);
+// Authentication
+router.use(Authenticate)
 /**
 |--------------------------------------------------
 | Verify customer account
@@ -30,7 +32,7 @@ router.post("/login", CustomerLogin);
 */
 router.patch("/verify", CustomerVerify);
 
-// Authentication
+
 /**
 |--------------------------------------------------
 | OTP/ Requesting OTP
