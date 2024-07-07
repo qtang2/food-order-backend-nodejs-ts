@@ -6,6 +6,7 @@ import { Vendor } from "../models";
 import {
   CreateCustomerInput,
   CustomerPayload,
+  EditCustomerProfileInput,
   UserLoginInput,
 } from "../dto/Customer";
 import { validate } from "class-validator";
@@ -114,13 +115,11 @@ export const CustomerLogin = async (
       } as CustomerPayload);
       // send the result
 
-      return res
-        .status(201)
-        .json({
-          signature,
-          email: customer.email,
-          verified: customer.verified,
-        });
+      return res.status(201).json({
+        signature,
+        email: customer.email,
+        verified: customer.verified,
+      });
     }
   }
 
@@ -191,22 +190,37 @@ export const GetCustomerProfile = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.id;
-  const result = await Vendor.findById(id);
-  if (result) {
-    return res.status(200).json(result);
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      return res.status(200).json(profile);
+    }
   }
-  return res.json({ message: "Vendor data not found" });
+  return res.status(400).json({ message: "Error with get profile " });
+
 };
 export const EditCustomerProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.id;
-  const result = await Vendor.findById(id);
-  if (result) {
-    return res.status(200).json(result);
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      const { firstName, lastName, address} = <EditCustomerProfileInput>req.body
+
+      profile.firstName = firstName
+      profile.lastName = lastName
+      profile.address = address
+
+      const updatedProfile = await profile.save()
+      return res.status(200).json(updatedProfile);
+    }
   }
-  return res.json({ message: "Vendor data not found" });
+  return res.status(400).json({ message: "Error with edit profile " });
+
 };
