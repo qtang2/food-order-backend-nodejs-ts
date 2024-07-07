@@ -30,8 +30,14 @@ export class UserLoginInput {
   password: string;
 }
 
+export class OrderInput {
+  _id: string;
+  unit: number;
+}
+
 export interface CustomerPayload {
   _id: string;
   email: string;
   verified: boolean;
 }
+

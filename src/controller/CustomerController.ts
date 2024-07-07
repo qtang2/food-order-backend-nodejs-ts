@@ -1,12 +1,13 @@
 // handle admin route stuff, business logic
 import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
-import { FoodDoc } from "../models/Food";
+import { Food, FoodDoc } from "../models/Food";
 import { Vendor } from "../models";
 import {
   CreateCustomerInput,
   CustomerPayload,
   EditCustomerProfileInput,
+  OrderInput,
   UserLoginInput,
 } from "../dto/Customer";
 import { validate } from "class-validator";
@@ -19,6 +20,7 @@ import {
   ValidatePassword,
 } from "../utility";
 import { Customer } from "../models/Customer";
+import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (
   req: Request,
@@ -62,6 +64,7 @@ export const CustomerSignUp = async (
     otp_expiry: expiry,
     lat: 0,
     lng: 0,
+    orders: [],
   });
 
   if (result != null) {
@@ -199,7 +202,6 @@ export const GetCustomerProfile = async (
     }
   }
   return res.status(400).json({ message: "Error with get profile " });
-
 };
 export const EditCustomerProfile = async (
   req: Request,
@@ -211,16 +213,87 @@ export const EditCustomerProfile = async (
     const profile = await Customer.findById(customer._id);
 
     if (profile) {
-      const { firstName, lastName, address} = <EditCustomerProfileInput>req.body
+      const { firstName, lastName, address } = <EditCustomerProfileInput>(
+        req.body
+      );
 
-      profile.firstName = firstName
-      profile.lastName = lastName
-      profile.address = address
+      profile.firstName = firstName;
+      profile.lastName = lastName;
+      profile.address = address;
 
-      const updatedProfile = await profile.save()
+      const updatedProfile = await profile.save();
       return res.status(200).json(updatedProfile);
     }
   }
   return res.status(400).json({ message: "Error with edit profile " });
-
 };
+export const CreateOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // grab customer
+
+  const customer = req.user;
+  if (customer) {
+    // create an order ID
+    const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      // grab order items from request
+      const cart = <[OrderInput]>req.body;
+
+      const cartItems = Array();
+      let netAmount = 0.0;
+
+      // calculate order amount
+      const foods = await Food.find()
+        .where("_id")
+        .in(cart.map((item) => item._id))
+        .exec();
+
+      foods.map((food) => [
+        cart.map(({ _id, unit }) => {
+          if (_id == food._id) {
+            netAmount += unit * food.price;
+            cartItems.push({ food, unit });
+          }
+        }),
+      ]);
+      // create order with item descriptions
+      if (cartItems) {
+        const currentOrder = await Order.create({
+          orderId,
+          items: cartItems,
+          totalAmount: netAmount,
+          orderDate: new Date(),
+          paidThrough: "COD",
+          paymentResponse: "",
+          orderStatus: "Waiting",
+        });
+
+        // update the order to the user account
+        if (currentOrder) {
+          profile.orders.push(currentOrder);
+
+          await profile.save();
+
+          return res.status(200).json(currentOrder);
+        }
+      }
+    }
+  }
+
+  return res.status(400).json({ message: "Error with create order " });
+};
+export const GetOrders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+export const GetOrderById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
