@@ -9,6 +9,14 @@ export class CreateCustomerInput {
     @Length(6,12)
     phone: string;
 }
+export class UserLoginInput {
+    @IsEmail()
+    email: string;
+
+    @Length(7,12)
+    password: string;
+
+}
 
 export interface CustomerPayload {
     _id: string;

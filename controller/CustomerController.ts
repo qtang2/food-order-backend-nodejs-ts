@@ -3,14 +3,19 @@ import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
 import { FoodDoc } from "../models/Food";
 import { Vendor } from "../models";
-import { CreateCustomerInput, CustomerPayload } from "../dto/Customer";
+import {
+  CreateCustomerInput,
+  CustomerPayload,
+  UserLoginInput,
+} from "../dto/Customer";
 import { validate } from "class-validator";
 import {
   GenerateOtp,
   GeneratePassword,
   GenerateSalt,
   GenerateSignature,
-  onRequestOtp,
+  onRequestOTP,
+  ValidatePassword,
 } from "../utility";
 import { Customer } from "../models/Customer";
 
@@ -81,7 +86,46 @@ export const CustomerLogin = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const userLoginInput = plainToClass(UserLoginInput, req.body);
+  const inputErrors = await validate(userLoginInput, {
+    validationError: { target: true },
+  });
+  if (inputErrors.length > 0) {
+    return res.status(400).json(inputErrors);
+  }
+
+  const { email, password } = userLoginInput;
+  const customer = await Customer.findOne({ email });
+
+  if (customer != null) {
+    const validate = await ValidatePassword(
+      password,
+      customer.password,
+      customer.salt
+    );
+
+    if (validate) {
+      // generate the signature
+      const signature = GenerateSignature({
+        _id: customer._id,
+        email: customer.email,
+        verified: customer.verified,
+      } as CustomerPayload);
+      // send the result
+
+      return res
+        .status(201)
+        .json({
+          signature,
+          email: customer.email,
+          verified: customer.verified,
+        });
+    }
+  }
+
+  return res.status(404).json({ message: "Login Error" });
+};
 export const CustomerVerify = async (
   req: Request,
   res: Response,
@@ -121,21 +165,26 @@ export const RequestOtp = async (
   res: Response,
   next: NextFunction
 ) => {
-  const pincode = req.params.pincode;
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
 
-  const result = await Vendor.find({
-    pincode,
-    serviceAvailable: false,
-  }).populate("foods");
+    if (profile) {
+      const { otp, expiry } = GenerateOtp();
 
-  if (result.length > 0) {
-    const foodResult: any = [];
-    result.map((vendor) => {
-      foodResult.push(...vendor.foods);
-    });
-    return res.status(200).json(foodResult);
+      profile.otp = otp;
+      profile.otp_expiry = expiry;
+
+      await profile.save();
+
+      // await onRequestOTP(otp, profile.phone) // no phone registered to send the otp
+
+      return res
+        .status(200)
+        .json({ message: "OTP send to your registered phone number" });
+    }
   }
-  return res.status(400).json({ message: "Data not found" });
+  return res.status(400).json({ message: "Error with request otp " });
 };
 export const GetCustomerProfile = async (
   req: Request,
