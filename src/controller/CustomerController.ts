@@ -227,6 +227,79 @@ export const EditCustomerProfile = async (
   }
   return res.status(400).json({ message: "Error with edit profile " });
 };
+
+/**
+|--------------------------------------------------
+| Cart section
+|--------------------------------------------------
+*/
+export const AddCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("cart.food");
+
+    const { _id, unit } = <OrderInput>req.body;
+    let cartItems = Array();
+
+    const food = await Food.findById(_id);
+    if (food != null) {
+      if (profile != null) {
+        cartItems = profile.cart;
+        if (cartItems.length > 0) {
+          // check and update unit
+          const existingFoodItem = cartItems.filter(
+            (item) => item.food._id.toString() === _id
+          );
+          if (existingFoodItem.length > 0) {
+            const index = cartItems.indexOf(existingFoodItem[0]);
+            if (unit > 0) {
+              cartItems[index] = {
+                food,
+                unit,
+              };
+            } else {
+              cartItems.splice(index, 1);
+            }
+          } else {
+            cartItems.push({ food, unit });
+          }
+        } else {
+          // add new item to cart
+          cartItems.push({ food, unit });
+        }
+
+        if (cartItems) {
+          profile.cart = cartItems as [any];
+
+          const cartResult = await profile.save();
+          return res.status(200).json(cartResult.cart);
+        }
+      }
+    }
+  }
+
+  return res.status(400).json({ message: "Error with add cart " });
+};
+export const GetCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+export const DeleteCart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
+
+/**
+|--------------------------------------------------
+| Order section
+|--------------------------------------------------
+*/
 export const CreateOrder = async (
   req: Request,
   res: Response,
@@ -309,7 +382,7 @@ export const GetOrderById = async (
 ) => {
   const orderId = req.params.id;
   if (orderId) {
-    const order = await Order.findById(orderId).populate('items.food');
+    const order = await Order.findById(orderId).populate("items.food");
 
     if (order != null) {
       return res.status(200).json(order);
