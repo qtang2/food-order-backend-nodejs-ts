@@ -57,8 +57,8 @@ router.patch("/profile", EditCustomerProfile);
 
 // Order
 router.post("/create-order", CreateOrder);
-router.post("/orders", GetOrders);
-router.post("/order/:id", GetOrderById);
+router.get("/orders", GetOrders);
+router.get("/order/:id", GetOrderById);
 
 
 

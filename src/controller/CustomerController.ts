@@ -291,9 +291,30 @@ export const GetOrders = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("orders");
+
+    if (profile) {
+      return res.status(200).json(profile.orders);
+    }
+  }
+  return res.status(400).json({ message: "Error get orders " });
+};
 export const GetOrderById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const orderId = req.params.id;
+  if (orderId) {
+    const order = await Order.findById(orderId).populate('items.food');
+
+    if (order != null) {
+      return res.status(200).json(order);
+    }
+  }
+
+  return res.status(400).json({ message: "Error get orders " });
+};
