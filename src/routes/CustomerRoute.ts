@@ -57,7 +57,7 @@ router.patch("/profile", EditCustomerProfile);
 //Cart
 router.post("/cart", AddCart);
 router.get("/cart", GetCart);
-router.delete("/cart/:id", DeleteCart);
+router.delete("/cart", DeleteCart);
 
 // Payment
 

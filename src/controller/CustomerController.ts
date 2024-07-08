@@ -288,12 +288,32 @@ export const GetCart = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("cart.food");
+    if (profile) {
+      return res.status(200).json(profile.cart);
+    }
+  }
+  return res.status(400).json({ message: "Error with get cart " });
+};
 export const DeleteCart = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+    if (profile) {
+      profile.cart = [] as any;
+      const cartResult = await profile.save();
+      return res.status(200).json(cartResult);
+    }
+  }
+  return res.status(400).json({ message: "Cart already empty" });
+};
 
 /**
 |--------------------------------------------------
