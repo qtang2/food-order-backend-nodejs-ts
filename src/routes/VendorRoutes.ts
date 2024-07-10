@@ -43,7 +43,7 @@ router.get("/foods", GetFoods);
 
 // Vendor orders
 router.get("/orders", GetCurrentOrders);
-router.get("/order/:id/process", ProcessOrder);
+router.put("/order/:id/process", ProcessOrder);
 router.get("/order/:id", GetOrderDetails);
 
 
