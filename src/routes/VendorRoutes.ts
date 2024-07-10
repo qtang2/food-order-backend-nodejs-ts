@@ -2,8 +2,11 @@ import express from "express";
 import multer from "multer";
 import {
   AddFood,
+  AddOffer,
+  EditOffer,
   GetCurrentOrders,
   GetFoods,
+  GetOffers,
   GetOrderDetails,
   GetVendorProfile,
   ProcessOrder,
@@ -46,5 +49,9 @@ router.get("/orders", GetCurrentOrders);
 router.put("/order/:id/process", ProcessOrder);
 router.get("/order/:id", GetOrderDetails);
 
+// Vendor offers
+router.get("/offers", GetOffers);
+router.post("/offer", AddOffer);
+router.put("/offer/:id", EditOffer );
 
 export { router as VendorRoute };
