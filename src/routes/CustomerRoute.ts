@@ -2,6 +2,7 @@ import express from "express";
 import {
   AddCart,
   CreateOrder,
+  CreatePayment,
   CustomerLogin,
   CustomerSignUp,
   CustomerVerify,
@@ -61,6 +62,7 @@ router.get("/cart", GetCart);
 router.delete("/cart", DeleteCart);
 
 // Payment
+router.post("/create-payment", CreatePayment);
 
 
 // Order

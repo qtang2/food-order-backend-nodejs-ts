@@ -22,6 +22,7 @@ import {
 import { Customer } from "../models/Customer";
 import { Order } from "../models/Order";
 import { Offer } from "../models/Offer";
+import { Transaction } from "../models/Transaction";
 
 export const CustomerSignUp = async (
   req: Request,
@@ -442,6 +443,45 @@ export const VerifyOffer = async (
         }
       }
     }
+  }
+
+  return res.status(400).json({ message: "Offer is not valid." });
+};
+export const CreatePayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  if (customer) {
+    const { amount, paymentMode, offerId } = req.body;
+
+    let payableAmount = Number(amount);
+
+    if (offerId) {
+      const offer = await Offer.findById(offerId);
+
+      if (offer && offer.isActive) {
+        payableAmount = payableAmount - offer.offerAmount;
+      }
+    }
+
+    //  Perform payment gateway charge api call
+
+    // create transaction record
+    const transaction = await Transaction.create({
+      customer: customer._id,
+      vendorId: "",
+      orderId: "",
+      orderValue: "",
+      offerUsed: offerId || "NA",
+      status: "",
+      paymentMode,
+      paymentResponse: "Payment is cash on delivery",
+    });
+
+    // return transaction ID
+    return res.status(200).json(transaction);
   }
 
   return res.status(400).json({ message: "Offer is not valid." });
