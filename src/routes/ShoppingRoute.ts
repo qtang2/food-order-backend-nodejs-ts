@@ -1,5 +1,5 @@
 import express from "express";
-import { GetFoodAvailability, GetFoodsIn30Min, GetRestaurantById, GetTopRestaurant, SearchFoods } from "../controller/ShoppingController";
+import { GetAvailableOffers, GetFoodAvailability, GetFoodsIn30Min, GetRestaurantById, GetTopRestaurant, SearchFoods } from "../controller/ShoppingController";
 
 
 const router = express.Router();
@@ -29,7 +29,13 @@ router.get('/food-in-30-min/:pincode', GetFoodsIn30Min)
 | Search Food
 |--------------------------------------------------
 */
-router.get('/ /:pincode', SearchFoods)
+router.get('/search/:pincode', SearchFoods)
+/**
+|--------------------------------------------------
+| Search Offer
+|--------------------------------------------------
+*/
+router.get('/offers/:pincode', GetAvailableOffers)
 
 /**
 |--------------------------------------------------

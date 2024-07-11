@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import { FoodDoc } from "../models/Food";
 import { Vendor } from "../models";
+import { Offer } from "../models/Offer";
 
 export const GetFoodAvailability = async (
   req: Request,
@@ -89,4 +90,21 @@ export const GetRestaurantById = async (
     return res.status(200).json(result);
   }
   return res.json({ message: "Vendor data not found" });
+};
+
+export const GetAvailableOffers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const pincode = req.params.pincode;
+
+  const offers = await Offer.find({
+    pincode,
+    isActive: true
+  });
+  if (offers !== null) {
+    return res.status(200).json(offers);
+  }
+  return res.status(400).json({ message: "Offers not found" });
 };
