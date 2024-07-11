@@ -21,6 +21,7 @@ import {
 } from "../utility";
 import { Customer } from "../models/Customer";
 import { Order } from "../models/Order";
+import { Offer } from "../models/Offer";
 
 export const CustomerSignUp = async (
   req: Request,
@@ -340,7 +341,7 @@ export const CreateOrder = async (
       const cartItems = Array();
       let netAmount = 0.0;
 
-      let vendorId 
+      let vendorId;
 
       // calculate order amount
       const foods = await Food.find()
@@ -351,7 +352,7 @@ export const CreateOrder = async (
       foods.map((food) => [
         cart.map(({ _id, unit }) => {
           if (_id == food._id) {
-            vendorId = food.vendorId
+            vendorId = food.vendorId;
             netAmount += unit * food.price;
             cartItems.push({ food, unit });
           }
@@ -368,16 +369,16 @@ export const CreateOrder = async (
           paidThrough: "COD",
           paymentResponse: "",
           orderStatus: "Waiting",
-          remarks: '', 
+          remarks: "",
           readyTime: 45,
           appliedOffers: false,
           offerId: null,
-          deliveryId: null
+          deliveryId: null,
         });
 
         // update the order to the user account
         if (currentOrder) {
-          profile.cart = [] as any
+          profile.cart = [] as any;
           profile.orders.push(currentOrder);
           await profile.save();
 
@@ -419,4 +420,29 @@ export const GetOrderById = async (
   }
 
   return res.status(400).json({ message: "Error get orders " });
+};
+export const VerifyOffer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const offerId = req.params.id;
+  const customer = req.user;
+  if (customer) {
+    if (offerId) {
+      const offer = await Offer.findById(offerId);
+
+      if (offer) {
+        if (offer.promoType == "USER") {
+          // only can apply once per customer
+        } else {
+          if (offer.isActive) {
+            return res.status(200).json({ message: "Offer is valid.", offer });
+          }
+        }
+      }
+    }
+  }
+
+  return res.status(400).json({ message: "Offer is not valid." });
 };

@@ -12,6 +12,7 @@ import {
   GetOrderById,
   GetOrders,
   RequestOtp,
+  VerifyOffer,
 } from "../controller";
 import { Authenticate } from "../middlewares";
 
@@ -67,6 +68,8 @@ router.post("/create-order", CreateOrder);
 router.get("/orders", GetOrders);
 router.get("/order/:id", GetOrderById);
 
+// apply offer for customer
+router.get("/offer/verify/:id", VerifyOffer);
 
 
 export { router as CustomerRoute };
