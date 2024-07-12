@@ -4,6 +4,7 @@ import { plainToClass } from "class-transformer";
 import { Food, FoodDoc } from "../models/Food";
 import { Vendor } from "../models";
 import {
+  CartItem,
   CreateCustomerInput,
   CustomerPayload,
   EditCustomerProfileInput,
@@ -244,7 +245,7 @@ export const AddCart = async (
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("cart.food");
 
-    const { _id, unit } = <OrderInput>req.body;
+    const { _id, unit } = <CartItem>req.body;
     let cartItems = Array();
 
     const food = await Food.findById(_id);
@@ -319,30 +320,97 @@ export const DeleteCart = async (
 
 /**
 |--------------------------------------------------
+| Create Payment section
+|--------------------------------------------------
+*/
+export const CreatePayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const customer = req.user;
+  const { amount, paymentMode, offerId } = req.body;
+  if (customer) {
+    let payableAmount = Number(amount);
+
+    if (offerId) {
+      const offer = await Offer.findById(offerId);
+
+      if (offer && offer.isActive) {
+        payableAmount = payableAmount - offer.offerAmount;
+      }
+    }
+
+    //  Perform payment gateway charge api call
+
+    // create transaction record
+    const transaction = await Transaction.create({
+      customer: customer._id,
+      vendorId: "",
+      orderId: "",
+      orderValue: "",
+      offerUsed: offerId || "NA",
+      status: "",
+      paymentMode,
+      paymentResponse: "Payment is cash on delivery",
+    });
+
+    // return transaction ID
+    return res.status(200).json(transaction);
+  }
+
+  return res.status(400).json({ message: "Offer is not valid." });
+};
+/**
+|--------------------------------------------------
 | Order section
 |--------------------------------------------------
 */
+const validateTransaction = async  (txnId: string) => {
+
+    const currentTransaction = await Transaction.findById(txnId)
+
+    if(currentTransaction) {
+      if(currentTransaction.status.toLocaleLowerCase() !== 'failed') {
+        return {status: true, currentTransaction}
+      }
+    }
+
+    return {status: false, currentTransaction}
+
+
+}
 export const CreateOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   // grab customer
-
   const customer = req.user;
+  const { txnId, amount, items } = <OrderInput>req.body;
+
+  // check the transaction for if transaction is successful, then create order
   if (customer) {
+    // validate transaction
+
+    const {status, currentTransaction} = await validateTransaction(txnId)
+
+    if(!status) {
+      return res.status(404).json({message: "Error creating order!"})
+    }
+
     // create an order ID
     const orderId = `${Math.floor(Math.random() * 89999) + 1000}`;
     const profile = await Customer.findById(customer._id);
 
     if (profile) {
       // grab order items from request
-      const cart = <[OrderInput]>req.body;
+      const cart = items;
 
       const cartItems = Array();
       let netAmount = 0.0;
 
-      let vendorId;
+      let vendorId: string = '';
 
       // calculate order amount
       const foods = await Food.find()
@@ -366,24 +434,30 @@ export const CreateOrder = async (
           vendorId,
           items: cartItems,
           totalAmount: netAmount,
+          paidAmount: amount,
           orderDate: new Date(),
-          paidThrough: "COD",
-          paymentResponse: "",
           orderStatus: "Waiting",
           remarks: "",
           readyTime: 45,
-          appliedOffers: false,
-          offerId: null,
           deliveryId: null,
         });
+
+        // update transaction
+        if(currentTransaction) {
+          currentTransaction.orderId = orderId
+          currentTransaction.vendorId = vendorId
+          currentTransaction.status = 'CONFIRMED'
+
+          await currentTransaction.save()
+        }
 
         // update the order to the user account
         if (currentOrder) {
           profile.cart = [] as any;
           profile.orders.push(currentOrder);
-          await profile.save();
+          const profileSaveResponse = await profile.save();
 
-          return res.status(200).json(currentOrder);
+          return res.status(200).json(profileSaveResponse);
         }
       }
     }
@@ -443,45 +517,6 @@ export const VerifyOffer = async (
         }
       }
     }
-  }
-
-  return res.status(400).json({ message: "Offer is not valid." });
-};
-export const CreatePayment = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const customer = req.user;
-  if (customer) {
-    const { amount, paymentMode, offerId } = req.body;
-
-    let payableAmount = Number(amount);
-
-    if (offerId) {
-      const offer = await Offer.findById(offerId);
-
-      if (offer && offer.isActive) {
-        payableAmount = payableAmount - offer.offerAmount;
-      }
-    }
-
-    //  Perform payment gateway charge api call
-
-    // create transaction record
-    const transaction = await Transaction.create({
-      customer: customer._id,
-      vendorId: "",
-      orderId: "",
-      orderValue: "",
-      offerUsed: offerId || "NA",
-      status: "",
-      paymentMode,
-      paymentResponse: "Payment is cash on delivery",
-    });
-
-    // return transaction ID
-    return res.status(200).json(transaction);
   }
 
   return res.status(400).json({ message: "Offer is not valid." });

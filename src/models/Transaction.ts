@@ -13,14 +13,14 @@ export interface TransactionDoc extends Document {
 
 const TransactionSchema = new Schema(
   {
-    customer: String,
-    vendorId: String,
-    orderId: String,
-    orderValue: Number,
-    offerUsed: String,
-    status: String,
-    paymentMode: String,
-    paymentResponse: String,
+    customer: { type: String },
+    vendorId: { type: String },
+    orderId: { type: String },
+    orderValue: { type: Number },
+    offerUsed: { type: String },
+    status: { type: String },
+    paymentMode: { type: String },
+    paymentResponse: { type: String },
   },
   {
     toJSON: {
