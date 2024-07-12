@@ -1,8 +1,7 @@
 // handle admin route stuff, business logic
 import { Request, Response, NextFunction } from "express";
 import { plainToClass } from "class-transformer";
-import { Food, FoodDoc } from "../models/Food";
-import { Vendor } from "../models";
+import { Food } from "../models/Food";
 import {
   CartItem,
   CreateCustomerInput,
@@ -17,7 +16,6 @@ import {
   GeneratePassword,
   GenerateSalt,
   GenerateSignature,
-  onRequestOTP,
   ValidatePassword,
 } from "../utility";
 import { Customer } from "../models/Customer";

@@ -10,7 +10,7 @@ export interface OrderDoc extends Document {
   orderStatus: string; // waiting failed ACCEPT REJECT UNDER-PROCESS READY
   remarks: string;
   deliveryId: string;
-  offerId: string;
+  readyTime: string;
 }
 
 const OrderSchema = new Schema(
@@ -30,7 +30,6 @@ const OrderSchema = new Schema(
     remarks: { type: String },
     deliveryId: { type: String },
     readyTime: { type: Number },
-    
   },
   {
     toJSON: {
