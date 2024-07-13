@@ -1,6 +1,6 @@
 
 import express, {Request, Response, NextFunction} from 'express'
-import { CreateVendor, GetTransactionByID, GetTransactions, GetVendorByID, GetVendors } from '../controller'
+import { CreateVendor, GetDeliveryUsers, GetTransactionByID, GetTransactions, GetVendorByID, GetVendors, VerifyDeliveryUser } from '../controller'
 
 
 const router = express.Router()
@@ -13,7 +13,9 @@ router.get('/vendor/:id', GetVendorByID)
 
 router.get('/transactions', GetTransactions)
 router.get('/transaction/:id', GetTransactionByID)
-router.get('/delivery/verify', VerifyDeliveryUser)
+
+router.put('/delivery/verify', VerifyDeliveryUser)
+router.get('/delivery/users', GetDeliveryUsers)
 
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
     res.json({message: "Hello from admin"})

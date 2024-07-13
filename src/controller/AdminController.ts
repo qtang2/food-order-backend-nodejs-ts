@@ -139,5 +139,5 @@ export const GetDeliveryUsers = async (
     return res.status(200).json(deliveryUsers);
   }
 
-  return res.status(400).json({ message: "Unable to verify delivery user" });
+  return res.status(400).json({ message: "Unable to get delivery users" });
 };
