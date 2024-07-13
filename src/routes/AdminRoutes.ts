@@ -13,6 +13,7 @@ router.get('/vendor/:id', GetVendorByID)
 
 router.get('/transactions', GetTransactions)
 router.get('/transaction/:id', GetTransactionByID)
+router.get('/delivery/verify', VerifyDeliveryUser)
 
 router.get('/', (req: Request, res: Response, next: NextFunction) => {
     res.json({message: "Hello from admin"})
