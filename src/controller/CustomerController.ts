@@ -22,7 +22,7 @@ import { Customer } from "../models/Customer";
 import { Order } from "../models/Order";
 import { Offer } from "../models/Offer";
 import { Transaction } from "../models/Transaction";
-import { Vendor } from "../models";
+import { DeliveryUser, Vendor } from "../models";
 
 export const CustomerSignUp = async (
   req: Request,
@@ -371,9 +371,31 @@ const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
   if (vendor) {
     const vendorPin = vendor.pincode;
     const vendorLat = vendor.lat;
-    const vendorlng = vendor.lng;
+    const vendorLng = vendor.lng;
     // find available delivery person
-    // check the nearest delivery person and assign order
+    const deliveryPerson = await DeliveryUser.find({
+      pincode: vendorPin,
+      verified: true,
+      isAvailable: true,
+    });
+
+    if (deliveryPerson && deliveryPerson.length > 0) {
+      const order = await Order.findById(orderId);
+      // check the nearest delivery person and assign order using map api
+
+      console.log("deliveryPerson", deliveryPerson);
+
+      if (order) {
+        order.deliveryId = deliveryPerson[0]._id as string;
+
+        const response = await order.save();
+        console.log("response", response);
+
+        // Notify vendor receive new order using Firebase push notification
+      }
+    }else {
+      console.log("No deliveryPerson found", deliveryPerson);
+    }
   }
   // update delivery ID
 };

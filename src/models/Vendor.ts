@@ -38,8 +38,8 @@ const VendorSchema = new Schema(
         ref: "food",
       },
     ],
-    //   lat: { type: Number },
-    //   lng: { type: Number },
+    lat: { type: Number },
+    lng: { type: Number },
   },
   {
     toJSON: {
