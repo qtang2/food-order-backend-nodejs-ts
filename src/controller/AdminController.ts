@@ -52,6 +52,8 @@ export const CreateVendor = async (
     rating: 0,
     serviceAvailable: false,
     coverImages: [],
+    lat:0,
+    lng: 0
   });
 
   return res.json(createVendor);``

@@ -22,6 +22,7 @@ import { Customer } from "../models/Customer";
 import { Order } from "../models/Order";
 import { Offer } from "../models/Offer";
 import { Transaction } from "../models/Transaction";
+import { Vendor } from "../models";
 
 export const CustomerSignUp = async (
   req: Request,
@@ -361,23 +362,37 @@ export const CreatePayment = async (
 };
 /**
 |--------------------------------------------------
+| Oder Delivery
+|--------------------------------------------------
+*/
+const assignOrderForDelivery = async (orderId: string, vendorId: string) => {
+  // find vendor
+  const vendor = await Vendor.findById(vendorId);
+  if (vendor) {
+    const vendorPin = vendor.pincode;
+    const vendorLat = vendor.lat;
+    const vendorlng = vendor.lng;
+    // find available delivery person
+    // check the nearest delivery person and assign order
+  }
+  // update delivery ID
+};
+/**
+|--------------------------------------------------
 | Order section
 |--------------------------------------------------
 */
-const validateTransaction = async  (txnId: string) => {
+const validateTransaction = async (txnId: string) => {
+  const currentTransaction = await Transaction.findById(txnId);
 
-    const currentTransaction = await Transaction.findById(txnId)
-
-    if(currentTransaction) {
-      if(currentTransaction.status.toLocaleLowerCase() !== 'failed') {
-        return {status: true, currentTransaction}
-      }
+  if (currentTransaction) {
+    if (currentTransaction.status.toLocaleLowerCase() !== "failed") {
+      return { status: true, currentTransaction };
     }
+  }
 
-    return {status: false, currentTransaction}
-
-
-}
+  return { status: false, currentTransaction };
+};
 export const CreateOrder = async (
   req: Request,
   res: Response,
@@ -391,10 +406,10 @@ export const CreateOrder = async (
   if (customer) {
     // validate transaction
 
-    const {status, currentTransaction} = await validateTransaction(txnId)
+    const { status, currentTransaction } = await validateTransaction(txnId);
 
-    if(!status) {
-      return res.status(404).json({message: "Error creating order!"})
+    if (!status) {
+      return res.status(404).json({ message: "Error creating order!" });
     }
 
     // create an order ID
@@ -408,7 +423,7 @@ export const CreateOrder = async (
       const cartItems = Array();
       let netAmount = 0.0;
 
-      let vendorId: string = '';
+      let vendorId: string = "";
 
       // calculate order amount
       const foods = await Food.find()
@@ -441,13 +456,14 @@ export const CreateOrder = async (
         });
 
         // update transaction
-        if(currentTransaction) {
-          currentTransaction.orderId = orderId
-          currentTransaction.vendorId = vendorId
-          currentTransaction.status = 'CONFIRMED'
+        if (currentTransaction) {
+          currentTransaction.orderId = orderId;
+          currentTransaction.vendorId = vendorId;
+          currentTransaction.status = "CONFIRMED";
 
-          await currentTransaction.save()
+          await currentTransaction.save();
         }
+        assignOrderForDelivery(currentOrder._id as string, vendorId);
 
         // update the order to the user account
         if (currentOrder) {
